@@ -10,11 +10,19 @@ namespace RobotTracktorBrain
     
     public class Brain
     {
-        public Neuron[,,] brain;
+        public const uint BRAIN_WIDTH = 3000;
+        public const uint BRAIN_HEIGHT = 3000;
+        public const uint BRAIN_DEPTH = 100;
+        public const uint INPUT_ZONE_WIDTH = 2000;
+        public const uint INPUT_ZONE_HEIGHT = 2000;
 
-        public Brain(uint width, uint height, uint depth)
+        private static Brain instance = null;
+
+        public Neuron[,,] brainMap;
+
+        private Brain(uint width, uint height, uint depth)
         {
-            brain = new Neuron[width, height, depth];
+            brainMap = new Neuron[width, height, depth];
 
             Random rand = new Random();
 
@@ -26,10 +34,23 @@ namespace RobotTracktorBrain
                 {
                     for (uint k = 0; k < depth; k++)
                     {
-                        brain[i, j, k] = new Neuron(new uint[] {i, j, k}, (byte)rand.Next(0, 256));
+                        brainMap[i, j, k] = new Neuron(new uint[] {i, j, k}, (byte)rand.Next(0, 256));
 
                     }
                 }
+            }
+        }
+
+        public static Brain Instance
+        {
+            get
+            {
+                // If the instance doesn't exist, create it
+                if (instance == null)
+                {
+                    instance = new Brain(BRAIN_WIDTH, BRAIN_HEIGHT, BRAIN_DEPTH);
+                }
+                return instance;
             }
         }
     }
