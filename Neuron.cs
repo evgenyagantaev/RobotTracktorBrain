@@ -24,6 +24,7 @@ namespace RobotTracktorBrain
     {
         public uint[] id;
         public byte value = 0;
+        public bool active = false;
 
         public Input(uint[] Id)
         {
@@ -42,5 +43,51 @@ namespace RobotTracktorBrain
             this.id = id;
             this.potential = potential;
         }
+
+        public void ProcessInputs()
+        {
+            uint adoptedPotential = potential;
+            foreach (var input in Dendrits)
+            {
+                if (input.value > 0)
+                {
+                    adoptedPotential += input.value;
+                    input.active = true;
+                }
+                else
+                {
+                    input.active = false;
+                }
+            }
+
+            if (adoptedPotential > 255)
+            {
+                adoptedPotential = 255;
+            }
+
+            potential = (byte)adoptedPotential;
+        }
+
+        public bool Reaction()
+        {
+            bool discharge = false;
+            Random random = new Random();
+
+            double probability = (double)(Math.Abs((int)potential - 127)) / 128.0;
+            if(probability >= 1.0)
+            {
+                probability = 0.99;
+            }
+            else if(probability <= 0.0)
+            {
+                probability = 0.01;
+            }
+
+            discharge = random.NextDouble() < probability;
+
+            return discharge;
+        }
+
+        
     }
 }
