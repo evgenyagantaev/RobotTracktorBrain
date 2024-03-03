@@ -6,35 +6,43 @@ namespace RobotTracktorBrain
 {
     public class BrainDeserializer
     {
-        public static Neuron[,,] DeserializeBrainMap(string directoryPath, uint width, uint height, uint depth)
+        public static Neuron[,,] DeserializeBrainMap(string baseDirectoryPath, uint width, uint height, uint depth)
         {
             Neuron[,,] brainMap = new Neuron[width, height, depth];
 
-            for (uint d = 0; d < depth; d++)
+            for (uint i = 0; i < width; i++)
             {
-                string filePath = Path.Combine(directoryPath, $"brainMap_layer_{d}.json");
-                if (File.Exists(filePath))
+                string rowDirectoryPath = Path.Combine(baseDirectoryPath, $"row_{i}");
+                if (Directory.Exists(rowDirectoryPath))
                 {
-                    DeserializeLayer(brainMap, d, filePath);
+                    for (uint j = 0; j < height; j++)
+                    {
+                        string filePath = Path.Combine(rowDirectoryPath, $"column_{j}.json");
+                        if (File.Exists(filePath))
+                        {
+                            DeserializeColumn(brainMap, i, j, filePath);
+                        }
+                    }
                 }
             }
 
             return brainMap;
         }
 
-        private static void DeserializeLayer(Neuron[,,] brainMap, uint depth, string filePath)
+        private static void DeserializeColumn(Neuron[,,] brainMap, uint x, uint y, string filePath)
         {
             string json = File.ReadAllText(filePath);
-            List<Neuron> layer = JsonConvert.DeserializeObject<List<Neuron>>(json);
+            List<Neuron> column = JsonConvert.DeserializeObject<List<Neuron>>(json);
 
-            if (layer != null)
+            if (column != null)
             {
-                for (int i = 0; i < layer.Count; i++)
+                for (uint depth = 0; depth < column.Count; depth++)
                 {
-                    uint x = layer[i].id[0];
-                    uint y = layer[i].id[1];
-                    uint z = depth; // Assuming depth is consistent with the file naming
-                    brainMap[x, y, z] = layer[i];
+                    // Assuming the depth index matches the order in the list
+                    if (depth < column.Count)
+                    {
+                        brainMap[x, y, depth] = column[(int)depth];
+                    }
                 }
             }
         }
