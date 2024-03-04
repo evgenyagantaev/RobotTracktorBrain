@@ -51,6 +51,8 @@ namespace RobotTracktorBrain
         {
             this.id = id;
             this.potential = potential;
+            Dendrits = new List<Input>();
+            Axon = new List<Output>();
         }
 
         public void ProcessInputs()

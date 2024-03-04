@@ -54,10 +54,7 @@ namespace RobotTracktorBrain
             e.Graphics.FillRectangle(Brushes.White, movingSquarePosition.X, movingSquarePosition.Y, MovingSquareSize, MovingSquareSize);
             e.Graphics.FillRectangle(Brushes.White, staticSquarePosition.X, staticSquarePosition.Y, StaticSquareSize, StaticSquareSize);
 
-            // Optionally, directly project the frame after each paint
-            ProjectFrameToBrain();
-            var inputLayerBitmap = CreateBitmapFromBrainMapLayerZero(brainMap, CLIENT_SIZE, CLIENT_SIZE);
-            DisplayCapturedBitmap(inputLayerBitmap);
+            
         }
 
         Bitmap frameBitmap = new Bitmap(CLIENT_SIZE, CLIENT_SIZE);
@@ -97,6 +94,46 @@ namespace RobotTracktorBrain
             }
         }
 
+        private void ProcessOutputLayerAndMoveSquare()
+        {
+            int width = brainMap.GetLength(0);
+            int height = brainMap.GetLength(1);
+            int depth = brainMap.GetLength(2) - 1; // the deepest layer
+
+            int A = 0, B = 0, C = 0, D = 0; // counter of specific output realm
+
+            int halfWidth = width / 2;
+            int halfHeight = height / 2;
+
+            // neurons processing
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    var neuron = brainMap[x, y, depth];
+                    neuron.ProcessInputs();
+                    neuron.CalculateReaction(); // calculate discharge event
+                    if (neuron.dischargeFlag) 
+                    {
+                        if (x < halfWidth && y < halfHeight) A++;
+                        else if (x >= halfWidth && y < halfHeight) B++;
+                        else if (x < halfWidth && y >= halfHeight) C++;
+                        else if (x >= halfWidth && y >= halfHeight) D++;
+                    }
+                }
+            }
+
+            // Управление движением подвижного квадрата
+            int moveX = 0, moveY = 0;
+            if (A > B) moveX = -1;
+            else if (A < B) moveX = 1;
+
+            if (C > D) moveY = -1;
+            else if (C < D) moveY = 1;
+
+            MoveMovingSquare(moveX, moveY);
+        }
+
         private void Timer_Tick(object sender, EventArgs e)
         {
             if (IsCollision())
@@ -105,7 +142,12 @@ namespace RobotTracktorBrain
             }
             else
             {
-                MoveMovingSquareTowardsStaticSquare();
+                //MoveMovingSquareTowardsStaticSquare();
+                // Optionally, directly project the frame after each paint
+                ProjectFrameToBrain();
+                //var inputLayerBitmap = CreateBitmapFromBrainMapLayerZero(brainMap, CLIENT_SIZE, CLIENT_SIZE);
+                //DisplayCapturedBitmap(inputLayerBitmap);
+                ProcessOutputLayerAndMoveSquare();
             }
 
             this.Invalidate(); // Redraw form
@@ -127,6 +169,16 @@ namespace RobotTracktorBrain
                 // Move vertically
                 movingSquarePosition.Y += Math.Sign(dy) * 2;
             }
+
+            // Keep the moving square within the bounds of the window
+            movingSquarePosition.X = Math.Max(0, Math.Min(this.ClientSize.Width - MovingSquareSize, movingSquarePosition.X));
+            movingSquarePosition.Y = Math.Max(0, Math.Min(this.ClientSize.Height - MovingSquareSize, movingSquarePosition.Y));
+        }
+
+        private void MoveMovingSquare(int dx, int dy)
+        {
+            movingSquarePosition.X += dx;
+            movingSquarePosition.Y += dy;
 
             // Keep the moving square within the bounds of the window
             movingSquarePosition.X = Math.Max(0, Math.Min(this.ClientSize.Width - MovingSquareSize, movingSquarePosition.X));
