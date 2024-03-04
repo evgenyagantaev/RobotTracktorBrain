@@ -6,24 +6,38 @@ namespace RobotTracktorBrain
 {
     public class MovingSquareForm : Form
     {
+        private DisplayForm displayForm;
+
         private const int MovingSquareSize = 4;
-        private const int StaticSquareSize = 40;
+        private const int StaticSquareSize = 20;
         private Point movingSquarePosition;
         private Point staticSquarePosition;
         private readonly Timer timer;
         private readonly Random random = new Random();
+        private Neuron[,,] brainMap; // Assuming this is how you define your brain map
 
-        public MovingSquareForm()
+        const int CLIENT_SIZE = 136;
+
+        public MovingSquareForm(Neuron[,,] brainMap)
         {
-            this.ClientSize = new Size(400, 400);
+            // Set the form's border style to None to remove the border and title bar
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            // Initialize and show the display form
+            displayForm = new DisplayForm();
+            displayForm.Show();
+
+            this.brainMap = brainMap; // Initialize the brain map
+
+            this.ClientSize = new Size(CLIENT_SIZE, CLIENT_SIZE);
             this.BackColor = Color.Black;
-            this.Text = "Moving Square";
+            //this.Text = "Moving Square";
 
             InitializePositions();
 
             timer = new Timer();
-            //timer.Interval = 1000; // Move every second
-            timer.Interval = 100;
+            timer.Interval = 1;
             timer.Tick += Timer_Tick;
             timer.Start();
         }
@@ -39,6 +53,48 @@ namespace RobotTracktorBrain
             base.OnPaint(e);
             e.Graphics.FillRectangle(Brushes.White, movingSquarePosition.X, movingSquarePosition.Y, MovingSquareSize, MovingSquareSize);
             e.Graphics.FillRectangle(Brushes.White, staticSquarePosition.X, staticSquarePosition.Y, StaticSquareSize, StaticSquareSize);
+
+            // Optionally, directly project the frame after each paint
+            ProjectFrameToBrain();
+            var inputLayerBitmap = CreateBitmapFromBrainMapLayerZero(brainMap, CLIENT_SIZE, CLIENT_SIZE);
+            DisplayCapturedBitmap(inputLayerBitmap);
+        }
+
+        Bitmap frameBitmap = new Bitmap(CLIENT_SIZE, CLIENT_SIZE);
+        private void ProjectFrameToBrain()
+        {
+            //Bitmap frameBitmap = new Bitmap(this.ClientSize.Width, this.ClientSize.Height);
+            this.DrawToBitmap(frameBitmap, new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height));
+            
+
+            FrameProjector.ProjectFrameToNeurons(frameBitmap, brainMap);
+            //DisplayCapturedBitmap(frameBitmap);
+
+            //frameBitmap.Dispose(); // Dispose of the bitmap to free resources
+        }
+
+        public Bitmap CreateBitmapFromBrainMapLayerZero(Neuron[,,] brainMap, int width, int height)
+        {
+            Bitmap bitmap = new Bitmap(width, height);
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    // Assuming potential is a byte from 0 to 255
+                    byte potential = brainMap[x, y, 0].potential;
+                    Color color = Color.FromArgb(potential, potential, potential); // Grayscale
+                    bitmap.SetPixel(x, y, color);
+                }
+            }
+            return bitmap;
+        }
+
+        private void DisplayCapturedBitmap(Bitmap capturedBitmap)
+        {
+            if (capturedBitmap != null && !displayForm.IsDisposed)
+            {
+                displayForm.SetBitmap(capturedBitmap);
+            }
         }
 
         private void Timer_Tick(object sender, EventArgs e)

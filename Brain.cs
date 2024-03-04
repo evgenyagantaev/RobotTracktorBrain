@@ -10,11 +10,13 @@ namespace RobotTracktorBrain
     
     public class Brain
     {
-        public const uint BRAIN_WIDTH = 3000;
-        public const uint BRAIN_HEIGHT = 3000;
-        public const uint BRAIN_DEPTH = 100;
-        public const uint INPUT_ZONE_WIDTH = 2000;
-        public const uint INPUT_ZONE_HEIGHT = 2000;
+        public const uint BRAIN_WIDTH = 136;
+        public const uint BRAIN_HEIGHT = 136;
+        public const uint BRAIN_DEPTH = 10;
+        public const uint INPUT_ZONE_WIDTH = 120;
+        public const uint INPUT_ZONE_HEIGHT = 120;
+        public const uint OUTPUT_ZONE_WIDTH = 120;
+        public const uint OUTPUT_ZONE_HEIGHT = 120;
 
         private static Brain instance = null;
 

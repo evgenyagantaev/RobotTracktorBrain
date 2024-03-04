@@ -51,6 +51,10 @@
     <Compile Include="Brain.cs" />
     <Compile Include="BrainDeserializer.cs" />
     <Compile Include="BrainSerializer.cs" />
+    <Compile Include="DisplayForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrameProjector.cs" />
     <Compile Include="MovingSquareForm.cs">
       <SubType>Form</SubType>
     </Compile>

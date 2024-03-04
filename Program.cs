@@ -24,7 +24,7 @@ namespace RobotTracktorBrain
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MovingSquareForm());
+            Application.Run(new MovingSquareForm(Brain.Instance.brainMap));
         }
     }
 }
