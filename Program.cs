@@ -10,13 +10,6 @@ using System.Windows.Forms;
 
 namespace RobotTracktorBrain
 {
-    //internal class Program
-    //{
-    //    static void Main(string[] args)
-    //    {
-    //        Console.WriteLine("Hello!");
-    //    }
-    //}
     static class Program
     {
         [STAThread]
@@ -24,6 +17,9 @@ namespace RobotTracktorBrain
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            Console.WriteLine("start loading brain...");
+            Brain.Instance.brainMap = BrainDeserializer.DeserializeBrainMap($"E:/workspace/robot_tracktor/brain_repo", Brain.BRAIN_WIDTH, Brain.BRAIN_HEIGHT, Brain.BRAIN_DEPTH);
+            Console.WriteLine("brain load finished");
             Application.Run(new MovingSquareForm(Brain.Instance.brainMap));
         }
     }

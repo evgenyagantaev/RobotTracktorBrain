@@ -134,6 +134,7 @@ namespace RobotTracktorBrain
             MoveMovingSquare(moveX, moveY);
         }
 
+        uint timerTickCounter = 0;
         private void Timer_Tick(object sender, EventArgs e)
         {
             if (IsCollision())
@@ -148,9 +149,16 @@ namespace RobotTracktorBrain
                 //var inputLayerBitmap = CreateBitmapFromBrainMapLayerZero(brainMap, CLIENT_SIZE, CLIENT_SIZE);
                 //DisplayCapturedBitmap(inputLayerBitmap);
                 ProcessOutputLayerAndMoveSquare();
+
+                //if(timerTickCounter > 100)
+                //{
+                //    BrainSerializer.SerializeBrainMap($"E:/workspace/robot_tracktor/brain_repo");
+                //    Application.Exit();
+                //}
             }
 
             this.Invalidate(); // Redraw form
+            timerTickCounter++;
         }
 
         private void MoveMovingSquareTowardsStaticSquare()
