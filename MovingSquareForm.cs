@@ -12,6 +12,8 @@ namespace RobotTracktorBrain
         private const int StaticSquareSize = 20;
         private Point movingSquarePosition;
         private Point staticSquarePosition;
+        private Point movingSquareCenterPosition;
+        private Point staticSquareCenterPosition;
         private readonly Timer timer;
         private readonly Random random = new Random();
         private Neuron[,,] brainMap; // Assuming this is how you define your brain map
@@ -105,6 +107,26 @@ namespace RobotTracktorBrain
             int halfWidth = width / 2;
             int halfHeight = height / 2;
 
+            // feedforward neurons processing
+            for (int d = 0; d < depth-1; d++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        var neuron = brainMap[x, y, d];
+                        neuron.ProcessInputs();
+                        neuron.CalculateReaction(); // calculate discharge event
+                        if (neuron.dischargeFlag)
+                        {
+                            neuron.Discharge();
+                        }
+                        neuron.UtilizeInactiveOutputs();
+                        neuron.CreateNewBonds();
+                    }
+                }
+            }
+
             // neurons processing
             for (int x = 0; x < width; x++)
             {
@@ -150,7 +172,7 @@ namespace RobotTracktorBrain
                 //DisplayCapturedBitmap(inputLayerBitmap);
                 ProcessOutputLayerAndMoveSquare();
 
-                //if(timerTickCounter > 100)
+                //if (timerTickCounter > 1000)
                 //{
                 //    BrainSerializer.SerializeBrainMap($"E:/workspace/robot_tracktor/brain_repo");
                 //    Application.Exit();

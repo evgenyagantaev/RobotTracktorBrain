@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
+
 
 namespace RobotTracktorBrain
 {
@@ -13,6 +15,8 @@ namespace RobotTracktorBrain
         public const byte POTENTIAL_ACTIVITY_INCREMENT = 3;
         public const byte POTENTIAL_INACTIVITY_DECREMENT = 1;
         public const byte MAX_POTENTIAL = 100;
+        public const byte SMALL_STIMULATION = 7;
+        public const byte BIG_STIMULATION = 37;
         public uint[] id;
         public byte potential;
 
@@ -126,8 +130,17 @@ namespace RobotTracktorBrain
                 {
                     var pairedNeuron = Brain.Instance.brainMap[output.id[0], output.id[1], output.id[2]];
                     var pairedInput = pairedNeuron.Dendrits.FirstOrDefault(input => input.id.SequenceEqual(output.id));
-                    pairedInput.value += TRANSMITTED_POTENTIAL;
-                    potential -= TRANSMITTED_POTENTIAL;
+                    if(pairedInput != null)
+                    {
+                        pairedInput.value += TRANSMITTED_POTENTIAL;
+                        potential -= TRANSMITTED_POTENTIAL;
+                    }
+                    else // paired input == null; TODO investigate, why this can happen 
+                    {
+                        // remove "empty" output
+                        //Axon.Remove(output);
+                    }
+                    
                 }
             }
 
@@ -144,14 +157,16 @@ namespace RobotTracktorBrain
                     // remove input from paired neuron
                     pairedNeuron.Dendrits.RemoveAll(input => input.id.SequenceEqual(id));
                 }
-                Axon.Remove(output);
+                //Axon.Remove(output);
             }
-            //Axon.RemoveAll(output => output.potential == 0);
+            Axon.RemoveAll(output => output.potential == 0);
         }
 
         public void CreateNewBonds()
         {
-            if(dischargeFlag)
+            Debug.Assert(7 > 5, "value 7 must be greater then 5");
+
+            if (dischargeFlag)
             {
                 while(potential > 0)
                 {
@@ -171,7 +186,7 @@ namespace RobotTracktorBrain
                     newInput.active = false;
                     newBondNeuron.Dendrits.Add(newInput);
 
-                    var newOutput = new Output(id);
+                    var newOutput = new Output(newBondId);
                     newOutput.potential = newBondPotential;
                     Axon.Add(newOutput);
                 }
@@ -187,6 +202,8 @@ namespace RobotTracktorBrain
                 (uint)random.Next(1, (int)Brain.BRAIN_DEPTH)
             };
         }
+
+        public void StimulateBond
 
     }
 }
