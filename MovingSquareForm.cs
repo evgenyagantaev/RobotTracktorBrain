@@ -14,6 +14,8 @@ namespace RobotTracktorBrain
         private Point staticSquarePosition;
         private Point movingSquareCenterPosition;
         private Point staticSquareCenterPosition;
+        private double oldDistance;
+        private double newDistance;
         private readonly Timer timer;
         private readonly Random random = new Random();
         private Neuron[,,] brainMap; // Assuming this is how you define your brain map
@@ -47,7 +49,15 @@ namespace RobotTracktorBrain
         private void InitializePositions()
         {
             movingSquarePosition = new Point(this.ClientSize.Width / 2, this.ClientSize.Height / 2);
+            movingSquareCenterPosition.X = movingSquarePosition.X + MovingSquareSize / 2;
+            movingSquareCenterPosition.Y = movingSquarePosition.Y + MovingSquareSize / 2;
             InitializeStaticSquarePosition();
+            oldDistance = CalculateDistance(movingSquareCenterPosition, staticSquareCenterPosition);
+        }
+
+        public static double CalculateDistance(Point p1, Point p2)
+        {
+            return Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -108,24 +118,25 @@ namespace RobotTracktorBrain
             int halfHeight = height / 2;
 
             // feedforward neurons processing
-            for (int d = 0; d < depth-1; d++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    for (int y = 0; y < height; y++)
-                    {
-                        var neuron = brainMap[x, y, d];
-                        neuron.ProcessInputs();
-                        neuron.CalculateReaction(); // calculate discharge event
-                        if (neuron.dischargeFlag)
-                        {
-                            neuron.Discharge();
-                        }
-                        neuron.UtilizeInactiveOutputs();
-                        neuron.CreateNewBonds();
-                    }
-                }
-            }
+            //for (int d = 0; d < depth-1; d++)
+            //{
+            //    for (int x = 0; x < width; x++)
+            //    {
+            //        for (int y = 0; y < height; y++)
+            //        {
+            //            var neuron = brainMap[x, y, d];
+            //            neuron.ProcessInputs();
+            //            neuron.CalculateReaction(); // calculate discharge event
+            //            if (neuron.dischargeFlag)
+            //            {
+            //                neuron.Discharge();
+            //            }
+            //            neuron.UtilizeInactiveOutputs();
+            //            neuron.CreateNewBonds();
+            //        }
+            //    }
+            //}
+            Brain.Instance.feedforwardProcess();
 
             // neurons processing
             for (int x = 0; x < width; x++)
@@ -161,6 +172,7 @@ namespace RobotTracktorBrain
         {
             if (IsCollision())
             {
+                Brain.Instance.feedbackProcess(Output.BIG_STIMULATION);
                 InitializePositions(); // Reset positions if collided
             }
             else
@@ -171,6 +183,12 @@ namespace RobotTracktorBrain
                 //var inputLayerBitmap = CreateBitmapFromBrainMapLayerZero(brainMap, CLIENT_SIZE, CLIENT_SIZE);
                 //DisplayCapturedBitmap(inputLayerBitmap);
                 ProcessOutputLayerAndMoveSquare();
+
+                if(newDistance < oldDistance)
+                {
+                    Brain.Instance.feedbackProcess(Output.SMALL_STIMULATION);
+                }
+                oldDistance = newDistance;
 
                 //if (timerTickCounter > 1000)
                 //{
@@ -213,6 +231,11 @@ namespace RobotTracktorBrain
             // Keep the moving square within the bounds of the window
             movingSquarePosition.X = Math.Max(0, Math.Min(this.ClientSize.Width - MovingSquareSize, movingSquarePosition.X));
             movingSquarePosition.Y = Math.Max(0, Math.Min(this.ClientSize.Height - MovingSquareSize, movingSquarePosition.Y));
+
+            movingSquareCenterPosition.X = movingSquarePosition.X + MovingSquareSize / 2;
+            movingSquareCenterPosition.Y = movingSquarePosition.Y + MovingSquareSize / 2;
+
+            newDistance = CalculateDistance(movingSquareCenterPosition, staticSquareCenterPosition);
         }
 
         private bool IsCollision()
@@ -232,6 +255,9 @@ namespace RobotTracktorBrain
                 case 2: staticSquarePosition = new Point(0, random.Next(0, this.ClientSize.Height - StaticSquareSize)); break;
                 case 3: staticSquarePosition = new Point(this.ClientSize.Width - StaticSquareSize, random.Next(0, this.ClientSize.Height - StaticSquareSize)); break;
             }
+
+            staticSquareCenterPosition.X = staticSquarePosition.X + StaticSquareSize / 2;
+            staticSquareCenterPosition.Y = staticSquarePosition.Y + StaticSquareSize / 2;
         }
     }
 }

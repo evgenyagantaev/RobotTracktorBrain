@@ -17,6 +17,7 @@ namespace RobotTracktorBrain
         public const byte MAX_POTENTIAL = 100;
         public const byte SMALL_STIMULATION = 7;
         public const byte BIG_STIMULATION = 37;
+        public const byte POTENTIAL_MULTIPLICATOR = 7;
         public uint[] id;
         public byte potential;
 
@@ -187,7 +188,7 @@ namespace RobotTracktorBrain
                     newBondNeuron.Dendrits.Add(newInput);
 
                     var newOutput = new Output(newBondId);
-                    newOutput.potential = newBondPotential;
+                    newOutput.potential = (byte)(newBondPotential * Output.POTENTIAL_MULTIPLICATOR);
                     Axon.Add(newOutput);
                 }
             }
@@ -203,7 +204,19 @@ namespace RobotTracktorBrain
             };
         }
 
-        public void StimulateBond
+        public void StimulateBonds(byte stimulationValue)
+        {
+            foreach(var input in Dendrits) 
+            {
+                if(input.active) 
+                {
+                    var pairedNeuronId = input.id;
+                    var pairedNeuron = Brain.Instance.brainMap[pairedNeuronId[0], pairedNeuronId[1], pairedNeuronId[2]];
+                    var outputToStimulate = pairedNeuron.Axon.FirstOrDefault(output => output.id.SequenceEqual(input.id));
+                    outputToStimulate.potential = (byte)Math.Min(Output.MAX_POTENTIAL, outputToStimulate.potential + stimulationValue);
+                }
+            }
+        }
 
     }
 }

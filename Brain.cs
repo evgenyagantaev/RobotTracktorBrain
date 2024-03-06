@@ -55,5 +55,41 @@ namespace RobotTracktorBrain
                 return instance;
             }
         }
+
+        public void feedforwardProcess()
+        {
+            for (uint d = 0; d < BRAIN_DEPTH - 2; d--)
+            {
+                for (int x = 0; x < BRAIN_WIDTH; x++)
+                {
+                    for (int y = 0; y < BRAIN_HEIGHT; y++)
+                    {
+                        var neuron = brainMap[x, y, d];
+                        neuron.ProcessInputs();
+                        neuron.CalculateReaction(); // calculate discharge event
+                        if (neuron.dischargeFlag)
+                        {
+                            neuron.Discharge();
+                        }
+                        neuron.UtilizeInactiveOutputs();
+                        neuron.CreateNewBonds();
+                    }
+                }
+            }
+        }
+
+        public void feedbackProcess(byte stimulationValue)
+        {
+            for(int d = (int)(BRAIN_DEPTH-1); d >= 0; d--)
+            {
+                for (int x = 0; x < BRAIN_WIDTH; x++)
+                {
+                    for (int y = 0; y < BRAIN_HEIGHT; y++)
+                    {
+                        brainMap[x, y, d].StimulateBonds(stimulationValue);
+                    }
+                }
+            }
+        }
     }
 }
